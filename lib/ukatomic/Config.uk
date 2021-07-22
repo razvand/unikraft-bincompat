@@ -1,0 +1,6 @@
+menuconfig LIBUKATOMIC
+  bool "ukatomic: Test futex"
+  select LIBUKSCHED
+  default y
+  help
+    Testing futex syscall.
