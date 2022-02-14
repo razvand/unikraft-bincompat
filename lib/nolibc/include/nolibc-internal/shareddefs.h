@@ -142,3 +142,9 @@ typedef unsigned long long fsblkcnt_t;
 typedef unsigned long long fsfilcnt_t;
 #define __DEFINED_fsfilcnt_t
 #endif
+
+#if defined(__NEED_socklen_t) && !defined(__DEFINED_socklen_t)
+typedef unsigned int __socklen_t;
+typedef __socklen_t socklen_t;
+#define __DEFINED_socklen_t
+#endif
