@@ -120,6 +120,7 @@ posix_socket_alloc_fd(struct posix_socket_driver *d, int type, void *sock_data)
 	vfs_file->f_vfs_flags = UK_VFSCORE_NOPOS;
 
 	uk_mutex_init(&vfs_file->f_lock);
+	UK_INIT_LIST_HEAD(&vfs_file->f_ep);
 
 	vfs_vnode->v_data = sock;
 	vfs_vnode->v_type = VSOCK;
@@ -288,6 +289,29 @@ posix_socket_vfscore_ioctl(struct vnode *vnode,
 	return 0;
 }
 
+static int posix_socket_vfscore_poll(struct vnode *vnode, unsigned int *revents,
+				     struct eventpoll_cb *ecb)
+{
+	struct posix_socket_file *sock;
+	int ret;
+
+	UK_ASSERT(vnode->v_data);
+	UK_ASSERT(vnode->v_type == VSOCK);
+
+	sock = (struct posix_socket_file *)vnode->v_data;
+
+	ret = posix_socket_poll(sock, revents, ecb);
+	if (ret < 0)
+		return -ret;
+	if (unlikely(ret < 0)) {
+		PSOCKET_ERR("poll on socket %d failed: %d\n", fp->fd,
+			    (int)ret);
+		ret = -ret;
+	}
+
+	return 0;
+}
+
 #define posix_socket_vfscore_getattr ((vnop_getattr_t) vfscore_vop_einval)
 #define posix_socket_vfscore_inactive ((vnop_inactive_t) vfscore_vop_nullop)
 
@@ -298,7 +322,8 @@ struct vnops posix_socket_vnops = {
 	.vop_read = posix_socket_vfscore_read,
 	.vop_ioctl = posix_socket_vfscore_ioctl,
 	.vop_getattr = posix_socket_vfscore_getattr,
-	.vop_inactive = posix_socket_vfscore_inactive
+	.vop_inactive = posix_socket_vfscore_inactive,
+	.vop_poll = posix_socket_vfscore_poll
 };
 
 #define posix_socket_vget ((vfsop_vget_t) vfscore_nullop)

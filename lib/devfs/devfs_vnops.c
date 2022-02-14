@@ -261,6 +261,7 @@ vop_eperm(void)
 #define devfs_fallocate ((vnop_fallocate_t)vfscore_vop_nullop)
 #define devfs_readlink	((vnop_readlink_t)vfscore_vop_nullop)
 #define devfs_symlink	((vnop_symlink_t)vfscore_vop_nullop)
+#define devfs_poll	((vnop_poll_t)vfscore_vop_einval)
 
 /*
  * vnode operations
@@ -285,10 +286,11 @@ struct vnops devfs_vnops = {
 	devfs_inactive,		/* inactive */
 	devfs_truncate,		/* truncate */
 	devfs_link,		/* link */
-	(vnop_cache_t) NULL, /* arc */
+	(vnop_cache_t) NULL,	/* arc */
 	devfs_fallocate,	/* fallocate */
 	devfs_readlink,		/* read link */
 	devfs_symlink,		/* symbolic link */
+	devfs_poll		/* poll */
 };
 
 /*

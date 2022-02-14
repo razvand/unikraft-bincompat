@@ -336,6 +336,24 @@ typedef int (*posix_socket_close_func_t)(struct posix_socket_file *sock);
 typedef int (*posix_socket_ioctl_func_t)(struct posix_socket_file *sock,
 		int request, void *argp);
 
+/*
+ * Poll the socket. The driver is expected to register with the eventpoll and
+ * signal new incoming events via eventpoll_signal as soon as they occur.
+ *
+ * @param sock Reference to the socket
+ * @param revents Pointer to an unsigned integer which receives the mask of
+ *    events that are active for the socket (e.g., EPOLLIN)
+ * @param ecb Reference to the eventpoll control block. It can be used to
+ *    configure a cleanup function that should be called when the eventpoll
+ *    is destroyed and further calls of eventpoll_signal by the driver are no
+ *    longer desired
+ *
+ * NOTE: the driver must ensure that the destructor callback synchronizes
+ *    with incoming events and poll calls
+ */
+typedef int (*posix_socket_poll_func_t)(struct posix_socket_file *sock,
+		unsigned int *revents, struct eventpoll_cb *ecb);
+
 /**
  * A structure containing the functions exported by a Unikraft socket driver
  */
@@ -363,6 +381,7 @@ struct posix_socket_ops {
 	posix_socket_read_func_t          read;
 	posix_socket_close_func_t         close;
 	posix_socket_ioctl_func_t         ioctl;
+	posix_socket_poll_func_t          poll;
 };
 
 static inline void *
@@ -558,6 +577,16 @@ posix_socket_ioctl(struct posix_socket_file *sock, int request, void *argp)
 	UK_ASSERT(sock->driver->ops->ioctl);
 
 	return sock->driver->ops->ioctl(sock, request, argp);
+}
+
+static inline int
+posix_socket_poll(struct posix_socket_file *sock, unsigned int *revents,
+		  struct eventpoll_cb *ecb)
+{
+	UK_ASSERT(sock);
+	UK_ASSERT(sock->driver->ops->poll);
+
+	return sock->driver->ops->poll(sock, revents, ecb);
 }
 
 /**

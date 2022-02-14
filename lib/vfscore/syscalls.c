@@ -214,6 +214,7 @@ sys_open(char *path, int flags, mode_t mode, struct vfscore_file **fpp)
 	dp = NULL;
 
 	uk_mutex_init(&fp->f_lock);
+	UK_INIT_LIST_HEAD(&fp->f_ep);
 
 	error = VOP_OPEN(vp, fp);
 	if (error) {

@@ -47,6 +47,8 @@ struct vnops;
 struct vnode;
 struct vfscore_file;
 
+struct eventpoll_cb;
+
 /*
  * Vnode types.
  */
@@ -59,6 +61,8 @@ enum vtype {
 	VLNK,	    /* symbolic link */
 	VSOCK,	    /* socks */
 	VFIFO,	    /* FIFO */
+	VEPOLL,	    /* Epoll */
+	VEVENT,	    /* Eventfd */
 	VBAD
 };
 
@@ -169,8 +173,11 @@ typedef	int (*vnop_truncate_t)	(struct vnode *, off_t);
 typedef	int (*vnop_link_t)      (struct vnode *, struct vnode *, char *);
 typedef int (*vnop_cache_t) (struct vnode *, struct vfscore_file *, struct uio *);
 typedef int (*vnop_fallocate_t) (struct vnode *, int, off_t, off_t);
+
 typedef int (*vnop_readlink_t)  (struct vnode *, struct uio *);
 typedef int (*vnop_symlink_t)   (struct vnode *, char *, char *);
+typedef int (*vnop_poll_t)	(struct vnode *, unsigned int *,
+				 struct eventpoll_cb *);
 
 /*
  * vnode operations
@@ -199,6 +206,7 @@ struct vnops {
 	vnop_fallocate_t	vop_fallocate;
 	vnop_readlink_t		vop_readlink;
 	vnop_symlink_t		vop_symlink;
+	vnop_poll_t		vop_poll;
 };
 
 /*
@@ -228,6 +236,7 @@ struct vnops {
 #define VOP_FALLOCATE(VP, M, OFF, LEN) ((VP)->v_op->vop_fallocate)(VP, M, OFF, LEN)
 #define VOP_READLINK(VP, U)        ((VP)->v_op->vop_readlink)(VP, U)
 #define VOP_SYMLINK(DVP, OP, NP)   ((DVP)->v_op->vop_symlink)(DVP, OP, NP)
+#define VOP_POLL(VP, EP, ECP)	   ((VP)->v_op->vop_poll)(VP, EP, ECP)
 
 int	 vfscore_vop_nullop(void);
 int	 vfscore_vop_einval(void);
