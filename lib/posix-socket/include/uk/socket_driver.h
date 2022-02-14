@@ -54,6 +54,8 @@ extern "C" {
 struct posix_socket_ops;
 struct posix_socket_file;
 
+struct eventpoll_cb;
+
 /**
  * The POSIX socket driver defines the operations to be used for the
  * specified AF family as well as the memory allocator.
