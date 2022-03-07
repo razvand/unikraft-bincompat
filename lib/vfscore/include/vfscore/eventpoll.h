@@ -148,11 +148,19 @@ struct eventpoll {
 
 	/* Queue of threads waiting on this eventpoll */
 	struct uk_waitq wq;
+
+	/* Allocator to use for add/del operations */
+	struct uk_alloc *a;
 };
 
-static inline void eventpoll_init(struct eventpoll *ep)
+static inline void eventpoll_init(struct eventpoll *ep, struct uk_alloc *a)
 {
 	UK_ASSERT(ep);
+
+	/* The allocator is optional if only add/del_unsafe() are used
+	 * and an external reference to all allocated fds exists
+	 */
+	ep->a = a;
 
 	uk_mutex_init(&ep->fd_lock);
 	UK_INIT_LIST_HEAD(&ep->fd_list);
@@ -160,13 +168,13 @@ static inline void eventpoll_init(struct eventpoll *ep)
 	uk_waitq_init(&ep->wq);
 }
 
-void eventpoll_fini(struct eventpoll *ep, struct uk_alloc *a);
+void eventpoll_fini(struct eventpoll *ep);
 
-int eventpoll_add(struct eventpoll *ep, struct uk_alloc *a, int fd,
-		  struct vfscore_file *fp, const struct epoll_event *event);
+int eventpoll_add(struct eventpoll *ep, int fd, struct vfscore_file *fp,
+		  const struct epoll_event *event);
 int eventpoll_mod(struct eventpoll *ep, int fd,
 		  const struct epoll_event *event);
-int eventpoll_del(struct eventpoll *ep, struct uk_alloc *a, int fd);
+int eventpoll_del(struct eventpoll *ep, int fd);
 
 void eventpoll_notify_close(struct vfscore_file *fp);
 

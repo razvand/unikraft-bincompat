@@ -64,7 +64,7 @@ static int do_pselect(int nfds, fd_set *readfds, fd_set *writefds,
 	if (nfds < 0)
 		return -EINVAL;
 
-	eventpoll_init(&ep);
+	eventpoll_init(&ep, uk_alloc_get_default());
 
 	/* Register fds in eventpoll */
 	for (i = 0; i < nfds; i++) {
@@ -169,7 +169,7 @@ ERR_FREE_EVENTS:
 	if (events)
 		uk_free(uk_alloc_get_default(), events);
 EXIT:
-	eventpoll_fini(&ep, uk_alloc_get_default());
+	eventpoll_fini(&ep);
 	return ret;
 }
 

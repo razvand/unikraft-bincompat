@@ -55,7 +55,7 @@ UK_TRACEPOINT(trace_efd_poll, "%p %u %u %u %d", void *, unsigned, unsigned,
 UK_TRACEPOINT(trace_efd_add, "%p %u %d", void *, unsigned, int);
 UK_TRACEPOINT(trace_efd_del, "%p %u", void *, unsigned);
 
-void eventpoll_fini(struct eventpoll *ep, struct uk_alloc *a)
+void eventpoll_fini(struct eventpoll *ep)
 {
 	struct eventpoll_fd *efd;
 	struct uk_list_head *itr, *tmp;
@@ -75,8 +75,8 @@ void eventpoll_fini(struct eventpoll *ep, struct uk_alloc *a)
 
 		eventpoll_del_unsafe(efd);
 
-		if (a)
-			uk_free(a, efd);
+		if (ep->a)
+			uk_free(ep->a, efd);
 	}
 
 	UK_ASSERT(uk_list_empty(&ep->fd_list));
@@ -146,8 +146,8 @@ void eventpoll_add_unsafe(struct eventpoll *ep, struct eventpoll_fd *efd)
 	trace_efd_add(ep, efd->fd, efd->vfs_file->f_dentry->d_vnode->v_type);
 }
 
-int eventpoll_add(struct eventpoll *ep, struct uk_alloc *a, int fd,
-		  struct vfscore_file *fp, const struct epoll_event *event)
+int eventpoll_add(struct eventpoll *ep, int fd, struct vfscore_file *fp,
+		  const struct epoll_event *event)
 {
 	struct eventpoll_fd *efd;
 	unsigned int revents = 0;
@@ -171,7 +171,8 @@ int eventpoll_add(struct eventpoll *ep, struct uk_alloc *a, int fd,
 	 * is only freed when the fp is also removed from the interest list
 	 * (and not pointed to anywhere else).
 	 */
-	efd = uk_malloc(a, sizeof(*efd));
+	UK_ASSERT(ep->a);
+	efd = uk_malloc(ep->a, sizeof(*efd));
 	if (!efd)
 		return -ENOMEM;
 
@@ -214,7 +215,7 @@ EXIT:
 	uk_mutex_unlock(&ep->fd_lock);
 	return ret;
 ERR_EXIT_FREE:
-	uk_free(a, efd);
+	uk_free(ep->a, efd);
 	goto EXIT;
 }
 
@@ -281,7 +282,7 @@ void eventpoll_del_unsafe(struct eventpoll_fd *efd)
 	efd->ep = NULL;
 }
 
-int eventpoll_del(struct eventpoll *ep, struct uk_alloc *a, int fd)
+int eventpoll_del(struct eventpoll *ep, int fd)
 {
 	struct eventpoll_fd *efd;
 	int ret = 0;
@@ -303,7 +304,8 @@ int eventpoll_del(struct eventpoll *ep, struct uk_alloc *a, int fd)
 	 * put fp here
 	 */
 
-	uk_free(a, efd);
+	UK_ASSERT(ep->a);
+	uk_free(ep->a, efd);
 EXIT:
 	uk_mutex_unlock(&ep->fd_lock);
 	return ret;
@@ -330,12 +332,19 @@ void eventpoll_notify_close(struct vfscore_file *fp)
 		trace_efd_close_vfs(ep, efd->fd);
 
 		uk_mutex_lock(&ep->fd_lock);
+
 		eventpoll_del_unsafe(efd);
+
+		/* If this was the last fd in the eventpoll, wake up any
+		 * waiters so that they are not stuck forever
+		 */
+		if (uk_list_empty(&ep->fd_list))
+			uk_waitq_wake_up(&ep->wq);
+
 		uk_mutex_unlock(&ep->fd_lock);
 
-		/* TODO: we have to wake up any waiters if this was the last
-		 * fd in ep
-		 */
+		if (ep->a)
+			uk_free(ep->a, efd);
 	}
 }
 
@@ -407,12 +416,13 @@ int eventpoll_wait(struct eventpoll *ep, struct epoll_event *events,
 		trace_ep_wait(ep, uk_thread_current());
 
 		timedout = uk_waitq_wait_event_deadline_mutex(&ep->wq,
-				!uk_list_empty(&ep->tr_list), deadline,
+				!uk_list_empty(&ep->tr_list) &&
+				!uk_list_empty(&ep->fd_list), deadline,
 				&ep->fd_lock);
 
 		trace_ep_wakeup(ep, uk_thread_current(), (timedout) ? 1 : 0);
 
-		if (timedout)
+		if (timedout || uk_list_empty(&ep->fd_list))
 			break;
 	}
 

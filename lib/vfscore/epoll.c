@@ -59,7 +59,7 @@ static int epoll_vfscore_close(struct vnode *vnode,
 	ep = (struct eventpoll *)vnode->v_data;
 
 	/* Clean up interest lists and release fds */
-	eventpoll_fini(ep, uk_alloc_get_default());
+	eventpoll_fini(ep);
 
 	uk_free(uk_alloc_get_default(), ep);
 
@@ -163,7 +163,7 @@ static int do_epoll_create(struct uk_alloc *a, int flags)
 	vfs_vnode->v_data = ep;
 	vfs_vnode->v_type = VEPOLL;
 
-	eventpoll_init(ep);
+	eventpoll_init(ep, a);
 
 	/* Store within the vfs structure */
 	ret = vfscore_install_fd(vfs_fd, vfs_file);
@@ -208,8 +208,7 @@ UK_SYSCALL_R_DEFINE(int, epoll_create, int, size)
 	return do_epoll_create(uk_alloc_get_default(), 0);
 }
 
-static int do_epoll_ctl(struct uk_alloc *a, int epfd, int op, int fd,
-			struct epoll_event *event)
+static int do_epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)
 {
 	struct vfscore_file *epf, *fp;
 	struct eventpoll *ep;
@@ -251,13 +250,13 @@ static int do_epoll_ctl(struct uk_alloc *a, int epfd, int op, int fd,
 
 	switch (op) {
 	case EPOLL_CTL_ADD:
-		ret = eventpoll_add(ep, a, fd, fp, event);
+		ret = eventpoll_add(ep, fd, fp, event);
 		break;
 	case EPOLL_CTL_MOD:
 		ret = eventpoll_mod(ep, fd, event);
 		break;
 	case EPOLL_CTL_DEL:
-		ret = eventpoll_del(ep, a, fd);
+		ret = eventpoll_del(ep, fd);
 		break;
 	default:
 		ret = -EINVAL;
@@ -275,7 +274,7 @@ EXIT:
 UK_SYSCALL_R_DEFINE(int, epoll_ctl, int, epfd, int, op, int, fd,
 		    struct epoll_event *, event)
 {
-	return do_epoll_ctl(uk_alloc_get_default(), epfd, op, fd, event);
+	return do_epoll_ctl(epfd, op, fd, event);
 }
 
 static int do_epoll_pwait(int epfd, struct epoll_event *events, int maxevents,

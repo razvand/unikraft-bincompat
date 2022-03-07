@@ -55,7 +55,7 @@ static int do_ppoll(struct pollfd *fds, nfds_t nfds, const __nsec *timeout,
 	if (nfds > INT_MAX)
 		return -EINVAL;
 
-	eventpoll_init(&ep);
+	eventpoll_init(&ep, uk_alloc_get_default());
 
 	/* Register fds in eventpoll */
 	for (i = 0; i < num_fds; i++) {
@@ -134,7 +134,7 @@ ERR_FREE_EVENTS:
 	if (events)
 		uk_free(uk_alloc_get_default(), events);
 EXIT:
-	eventpoll_fini(&ep, uk_alloc_get_default());
+	eventpoll_fini(&ep);
 	return ret;
 }
 
