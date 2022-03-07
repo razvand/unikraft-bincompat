@@ -52,7 +52,7 @@ UK_TRACEPOINT(trace_efd_signal, "%p %u %u %u", void *, unsigned, unsigned,
 		unsigned);
 UK_TRACEPOINT(trace_efd_poll, "%p %u %u %u %d", void *, unsigned, unsigned,
 		unsigned, int);
-UK_TRACEPOINT(trace_efd_add, "%p %u", void *, unsigned, int);
+UK_TRACEPOINT(trace_efd_add, "%p %u %d", void *, unsigned, int);
 UK_TRACEPOINT(trace_efd_del, "%p %u", void *, unsigned);
 
 void eventpoll_fini(struct eventpoll *ep, struct uk_alloc *a)
@@ -201,6 +201,9 @@ int eventpoll_add(struct eventpoll *ep, struct uk_alloc *a, int fd,
 
 	/* We also have to wake up any waiters if the fd is already ready */
 	if (revents & efd->event.events) {
+		trace_efd_signal(ep, efd->fd, revents,
+				 revents & efd->event.events);
+
 		if (uk_list_empty(&efd->tr_link))
 			uk_list_add_tail(&efd->tr_link, &ep->tr_list);
 
