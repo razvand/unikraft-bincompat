@@ -252,7 +252,7 @@ int eventpoll_mod(struct eventpoll *ep, int fd, const struct epoll_event *event)
 		trace_efd_signal(ep, efd->fd, revents,
 				 revents & efd->event.events);
 
-		if (!uk_list_empty(&efd->tr_link))
+		if (uk_list_empty(&efd->tr_link))
 			uk_list_add_tail(&efd->tr_link, &ep->tr_list);
 
 		uk_waitq_wake_up(&ep->wq);
