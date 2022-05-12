@@ -1,8 +1,11 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /*
  * Authors: Florian Schmidt <florian.schmidt@neclab.eu>
+ *          Simon Kuenzer <simon.kuenzer@neclab.eu>
  *
  * Copyright (c) 2019, NEC Europe Ltd., NEC Corporation. All rights reserved.
+ * Copyright (c) 2022, NEC Laboratories Europe GmbH, NEC Corporation.
+ *                     All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,6 +36,42 @@
 #ifndef __UKARCH_TLS_H__
 #define __UKARCH_TLS_H__
 
-#include <uk/asm/tls.h>
+/**
+ * Returns the alignement requirement for an allocation
+ * to be used as TLS
+ *
+ * @return
+ *  Alignment in bytes
+ */
+__sz ukarch_tls_area_align(void);
+
+/**
+ * Returns the required size for an allocation to be used
+ * as TLS
+ *
+ * @return
+ *  TLS area size in bytes
+ */
+__sz ukarch_tls_area_size(void);
+
+/**
+ * Returns the TLS pointer (tlsp) that is used to activate
+ * the TLS memore `tls_area` with `ukplat_tlsp_set()`
+ *
+ * @param tls_area
+ *  TLS area to activate
+ * @return
+ *  TLS pointer that can be used with `ukplat_tlsp_set()`
+ */
+__uptr ukarch_tls_pointer(void *tls_area);
+
+/**
+ * Initializes/resets a memory area for TLS use based
+ * on the TLS template.
+ *
+ * @param tls_area
+ *  TLS area to initialize
+ */
+void ukarch_tls_area_copy(void *tls_area);
 
 #endif /* __UKARCH_TLS_H__ */

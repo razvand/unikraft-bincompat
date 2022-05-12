@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /*
- * Authors: Costin Lupu <costin.lupu@cs.pub.ro>
+ * Authors: Simon Kuenzer <simon.kuenzer@neclab.eu>
  *
- * Copyright (c) 2018, NEC Europe Ltd., NEC Corporation. All rights reserved.
+ * Copyright (c) 2022, NEC Laboratories Europe GmbH, NEC Corporation.
+ *                     All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,32 +30,19 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef __PLAT_CMN_SW_CTX_H__
-#define __PLAT_CMN_SW_CTX_H__
+#ifndef __PROCESS_H_INTERNAL__
+#define __PROCESS_H_INTERNAL__
 
-#ifndef __ASSEMBLY__
-#include <stdint.h>
-#include <uk/plat/thread.h>
+#include <uk/config.h>
+#include <sys/types.h>
+#if CONFIG_LIBPOSIX_PROCESS_PIDS
+#include <uk/thread.h>
+#endif /* CONFIG_LIBPOSIX_PROCESS_PIDS */
 
-struct sw_ctx {
-	unsigned long sp;	/* Stack pointer */
-	unsigned long ip;	/* Instruction pointer */
-	unsigned long tlsp;	/* thread-local storage pointer */
-	uintptr_t extregs;	/* Pointer to an area to which extended
-				 * registers are saved on context switch.
-				 */
-	uint8_t _extregs[];     /* Reserved memory area for extended
-				 * registers state
-				 */
-};
+#if CONFIG_LIBPOSIX_PROCESS_PIDS
+struct uk_thread *tid2ukthread(pid_t tid);
+pid_t ukthread2tid(struct uk_thread *thread);
+pid_t ukthread2pid(struct uk_thread *thread);
+#endif /* CONFIG_LIBPOSIX_PROCESS_PIDS */
 
-void sw_ctx_callbacks_init(struct ukplat_ctx_callbacks *ctx_cbs);
-#endif
-
-#define OFFSETOF_SW_CTX_SP      0
-#define OFFSETOF_SW_CTX_IP      8
-
-/* TODO This should be better defined in the thread header */
-#define OFFSETOF_UKTHREAD_SW_CTX  16
-
-#endif /* __PLAT_CMN_SW_CTX_H__ */
+#endif /* __PROCESS_H_INTERNAL__ */

@@ -332,6 +332,8 @@ int uk_netdev_configure(struct uk_netdev *dev,
 }
 
 #ifdef CONFIG_LIBUKNETDEV_DISPATCHERTHREADS
+static void _dispatcher(void *arg) __noreturn;
+
 static void _dispatcher(void *arg)
 {
 	struct uk_netdev_event_handler *handler =
@@ -387,8 +389,8 @@ static int _create_event_handler(uk_netdev_queue_event_t callback,
 	}
 
 	h->dispatcher = uk_sched_thread_create(h->dispatcher_s,
-					       h->dispatcher_name, NULL,
-					       _dispatcher, h);
+					       _dispatcher, h,
+					       h->dispatcher_name);
 	if (!h->dispatcher) {
 		if (h->dispatcher_name)
 			free(h->dispatcher_name);
@@ -409,10 +411,9 @@ static void _destroy_event_handler(struct uk_netdev_event_handler *h
 	UK_ASSERT(h->dispatcher_s);
 
 	if (h->dispatcher) {
-		uk_thread_kill(h->dispatcher);
-		uk_thread_wait(h->dispatcher);
+		uk_sched_thread_terminate(h->dispatcher);
+		h->dispatcher = NULL;
 	}
-	h->dispatcher = NULL;
 
 	if (h->dispatcher_name)
 		free(h->dispatcher_name);

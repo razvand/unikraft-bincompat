@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /*
- * Authors: Costin Lupu <costin.lupu@cs.pub.ro>
+ * Authors: Simon Kuenzer <simon.kuenzer@neclab.eu>
  *
- * Copyright (c) 2019, University Politehnica of Bucharest. All rights reserved.
+ * Copyright (c) 2022, NEC Laboratories Europe GmbH, NEC Corporation.
+ *                     All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,10 +34,16 @@
 #ifndef __UK_PROCESS_H__
 #define __UK_PROCESS_H__
 
-#define UNIKRAFT_PID      1
-#define UNIKRAFT_PPID     0
-#define UNIKRAFT_SID      0
-#define UNIKRAFT_PGID     0
-#define UNIKRAFT_PROCESS_PRIO 0
+#include <uk/config.h>
+#if CONFIG_LIBUKSCHED
+#include <uk/thread.h>
+#endif
+
+#if CONFIG_LIBUKSCHED
+int uk_posix_process_create(struct uk_alloc *a,
+			    struct uk_thread *thread,
+			    struct uk_thread *parent);
+void uk_posix_process_kill(struct uk_thread *thread);
+#endif /* CONFIG_LIBUKSCHED */
 
 #endif /* __UK_PROCESS_H__ */

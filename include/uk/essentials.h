@@ -212,6 +212,11 @@ extern "C" {
 #define ALIGN_DOWN(v, a) ((v) & ~((a)-1))
 #endif
 
+/* Note: a has to be a power of 2 */
+#ifndef IS_ALIGNED
+#define IS_ALIGNED(v, a) (((v) & ~((a)-1)) == (v))
+#endif
+
 /**
  * Tests if `val` is part of the range defined by `base` and `len`
  */
@@ -286,6 +291,19 @@ extern "C" {
 	DEQUALIFY(s *, (const volatile char *)(x) - __offsetof(s, m))
 #endif
 #endif /* !__containerof */
+
+#ifdef __GNUC__
+#ifndef __return_addr
+#define __return_addr(lvl) \
+	((__uptr) __builtin_extract_return_addr(__builtin_return_address(lvl)))
+#endif
+#ifndef __frame_addr
+#define __frame_addr(lvl) \
+	((__uptr) __builtin_frame_address(lvl))
+#endif
+#else
+	/* to be defined */
+#endif /* !__GNUC__ */
 
 #ifndef UK_CTASSERT
 #define UK_CTASSERT(x)             _UK_CTASSERT(x, __LINE__)

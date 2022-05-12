@@ -203,6 +203,8 @@ int uk_blkdev_configure(struct uk_blkdev *dev,
 }
 
 #if CONFIG_LIBUKBLKDEV_DISPATCHERTHREADS
+static void _dispatcher(void *args) __noreturn;
+
 static void _dispatcher(void *args)
 {
 	struct uk_blkdev_event_handler *handler =
@@ -254,9 +256,9 @@ static int _create_event_handler(uk_blkdev_queue_event_t callback,
 
 	/* Create thread */
 	event_handler->dispatcher = uk_sched_thread_create(
-			event_handler->dispatcher_s,
-			event_handler->dispatcher_name, NULL,
-			_dispatcher, (void *)event_handler);
+				event_handler->dispatcher_s,
+				_dispatcher, (void *)event_handler,
+				event_handler->dispatcher_name);
 	if (event_handler->dispatcher == NULL) {
 		if (event_handler->dispatcher_name) {
 			free(event_handler->dispatcher);
@@ -279,8 +281,7 @@ static void _destroy_event_handler(struct uk_blkdev_event_handler *h
 	if (h->dispatcher) {
 		uk_semaphore_up(&h->events);
 		UK_ASSERT(h->dispatcher_s);
-		uk_thread_kill(h->dispatcher);
-		uk_thread_wait(h->dispatcher);
+		uk_sched_thread_terminate(h->dispatcher);
 		h->dispatcher = NULL;
 	}
 

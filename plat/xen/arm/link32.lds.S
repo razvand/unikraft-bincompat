@@ -85,26 +85,7 @@ SECTIONS
 
 	TLS_SECTIONS
 
-	/* Data */
-	_data = .;
-	.data : {
-		*(.data)
-		*(.data.*)
-	}
-	_edata = .; /* End of data included in image */
-
-	/*
-	 * NOTE: linker will insert any extra sections here,
-	 * just before .bss
-	 */
-
-	.bss : {
-		__bss_start = .;
-		*(.bss)
-		*(.bss.*)
-	}
-	. = ALIGN(__PAGE_SIZE);
-	_end = . ;
+	DATA_SECTIONS
 
 
 	/* Sections to be discarded */

@@ -1,5 +1,10 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 /*
+ * Authors: Simon Kuenzer <simon.kuenzer@neclab.eu>
+ *
+ * Copyright (c) 2021, NEC Laboratories Europe GmbH, NEC Corporation.
+ *                     All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -21,76 +26,26 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-/* Taken from Mini-OS */
 
-#include <uk/arch/limits.h> /* for __PAGE_SIZE */
-#include <uk/plat/common/common.lds.h>
+#ifndef __UKARCH_CTX_H__
+#error Do not include this header directly
+#endif
 
-OUTPUT_FORMAT("elf64-x86-64")
-OUTPUT_ARCH(i386:x86-64)
+#define ukarch_rstack_push(sp, value)			\
+	({						\
+		unsigned long _sp = (sp);		\
+		_sp -= sizeof(value);			\
+		*((typeof(value) *) _sp) = (value);	\
+		_sp;					\
+	})
 
-ENTRY(_libxenplat_start)
-SECTIONS
-{
-	. = 0x0;
-	_text = .;			/* Text and read-only data */
-	.text : {
-		*(.text.boot)
-		*(.text)
-		*(.gnu.warning)
-	} = 0x2000
+#define UKARCH_SP_ALIGN		(1 << 1)
+#define UKARCH_SP_ALIGN_MASK	(UKARCH_SP_ALIGN - 1)
 
-	_etext = .;			/* End of text section */
-
-	EXCEPTION_SECTIONS
-
-	CTORTAB_SECTION
-
-	INITTAB_SECTION
-
-	_rodata = .;
-	.rodata : {
-		*(.rodata)
-		*(.rodata.*)
-	}
-	. = ALIGN(__PAGE_SIZE);
-	_erodata = .;
-
-	. = ALIGN(0x8);
-	_ctors = .;
-	.preinit_array : {
-		PROVIDE_HIDDEN (__preinit_array_start = .);
-		KEEP (*(.preinit_array))
-		PROVIDE_HIDDEN (__preinit_array_end = .);
-	}
-
-	. = ALIGN(0x8);
-	.init_array : {
-		PROVIDE_HIDDEN (__init_array_start = .);
-		KEEP (*(SORT_BY_INIT_PRIORITY(.init_array.*) SORT_BY_INIT_PRIORITY(.ctors.*)))
-		KEEP (*(.init_array .ctors))
-		PROVIDE_HIDDEN (__init_array_end = .);
-	}
-	. = ALIGN(__PAGE_SIZE);
-	_ectors = .;
-
-	TLS_SECTIONS
-
-	DATA_SECTIONS
-
-	_end = . ;
-
-	/* Sections to be discarded */
-	/* TODO: Revisit when we have a solution for discarded sections
-	/DISCARD/ : {
-		*(.text.exit)
-		*(.data.exit)
-		*(.exitcall.exit)
-	}
-	*/
-
-	.comment 0 : { *(.comment) }
-	DEBUG_SYMBOLS
-
-	/DISCARD/ : { *(.note.gnu.build-id) }
-}
+#define ukarch_gen_sp(base, len)				\
+	({							\
+		unsigned long _sp = (unsigned long) (base)	\
+			+ (unsigned long) (len);		\
+		_sp &= ~((unsigned long) UKARCH_SP_ALIGN_MASK);	\
+		_sp;						\
+	})

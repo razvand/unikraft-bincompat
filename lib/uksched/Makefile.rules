@@ -1,0 +1,14 @@
+_LIBUKSCHED_RESERVED_TCB=
+
+## Make sure that the reserved space for a TCB is set only once.
+## A second call of this function will make compiling stop.
+## Usage:
+##  $(eval $(call uksched_tcb_reserve,<tcb_size_in_bytes>))
+define uksched_tcb_reserve =
+$(if $(strip $(_LIBUKSCHED_RESERVED_TCB)),
+		$(error uksched_tcb_reserve: Multiple space reservations for a TCB. Only a single configuration is possible),
+		$(eval LIBUKSCHED_THREAD_FLAGS-y+=-DTCB_RESERVED=$(1)) \
+		$(eval CFLAGS-$(CONFIG_LIBUKSCHED)+=-DLIBUKSCHED_HAVE_TCB=1) \
+		$(eval CXXFLAGS-$(CONFIG_LIBUKSCHED)+=-DLIBUKSCHED_HAVE_TCB=1) \
+		$(eval _LIBUKSCHED_RESERVED_TCB:=1))
+endef
