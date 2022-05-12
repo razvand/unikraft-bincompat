@@ -46,7 +46,7 @@ struct sysinfo {
 	unsigned long totalhigh;
 	unsigned long freehigh;
 	unsigned mem_unit;
-	char __reserved[256];
+	char _f[20-2*sizeof(unsigned long)-sizeof(unsigned)];
 };
 
 int sysinfo (struct sysinfo *);
