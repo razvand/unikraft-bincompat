@@ -264,7 +264,7 @@ int tcsetpgrp(int fd __unused, pid_t pgrp)
 	return 0;
 }
 
-pid_t tcgetpgrp(int fd)
+pid_t tcgetpgrp(int fd __unused)
 {
 	/* We have a single "process group" */
 	return UNIKRAFT_PGID;
@@ -425,7 +425,7 @@ UK_SYSCALL_R_DEFINE(int, getrusage, int, who,
 }
 
 #if UK_LIBC_SYSCALLS
-int prlimit(pid_t pid, int resource, const struct rlimit *new_limit,
+int prlimit(pid_t pid __unused, int resource, const struct rlimit *new_limit,
 	    struct rlimit *old_limit)
 {
 	return uk_syscall_e_prlimit64(0, (long) resource,
