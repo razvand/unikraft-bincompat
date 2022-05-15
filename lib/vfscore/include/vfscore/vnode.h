@@ -238,9 +238,9 @@ struct vnops {
 #define VOP_SYMLINK(DVP, OP, NP)   ((DVP)->v_op->vop_symlink)(DVP, OP, NP)
 #define VOP_POLL(VP, EP, ECP)	   ((VP)->v_op->vop_poll)(VP, EP, ECP)
 
-int	 vfscore_vop_nullop(void);
-int	 vfscore_vop_einval(void);
-int	 vfscore_vop_eperm(void);
+int     vfscore_vop_nullop(struct vnode * vnode __unused);
+int     vfscore_vop_einval(struct vnode * vnode __unused, struct vattr * vattr __unused);
+int     vfscore_vop_eperm(struct mount *, struct vnode *);
 int	 vfscore_vop_erofs(void);
 struct vnode *vn_lookup(struct mount *, uint64_t);
 void	 vn_lock(struct vnode *);

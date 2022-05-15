@@ -477,19 +477,19 @@ vnode_dump(void)
 #endif
 
 int
-vfscore_vop_nullop(void)
+vfscore_vop_nullop(struct vnode * vnode __unused)
 {
 	return 0;
 }
 
 int
-vfscore_vop_einval(void)
+vfscore_vop_einval(struct vnode * vnode __unused, struct vattr * vattr __unused)
 {
 	return EINVAL;
 }
 
 int
-vfscore_vop_eperm(void)
+vfscore_vop_eperm(struct mount * mnt __unused, struct vnode * vnode __unused)
 {
 	return EPERM;
 }
