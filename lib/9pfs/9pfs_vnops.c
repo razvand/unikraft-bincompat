@@ -554,6 +554,8 @@ static int uk_9pfs_getattr(struct vnode *vp, struct vattr *attr)
 	attr->va_mode = uk_9pfs_posix_mode_from_mode(stat.mode);
 	attr->va_nodeid = vp->v_ino;
 	attr->va_size = stat.length;
+	/* Initialize va_nlink */
+	attr->va_nlink = 1;
 
 	attr->va_atime.tv_sec = stat.atime;
 	attr->va_atime.tv_nsec = 0;
