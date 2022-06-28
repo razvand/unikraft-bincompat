@@ -97,7 +97,7 @@ struct vattr {
 	unsigned int	va_mask;
 	enum vtype	va_type;	/* vnode type */
 	mode_t		va_mode;	/* file access mode */
-	nlink_t		va_nlink;
+	__u32           va_nlink;
 	uid_t		va_uid;
 	gid_t		va_gid;
 	dev_t           va_fsid;        /* id of the underlying filesystem */
