@@ -39,6 +39,10 @@
 #include <uk/thread.h>
 #endif
 
+#define UNIKRAFT_SID      0
+#define UNIKRAFT_PGID     0
+#define UNIKRAFT_PROCESS_PRIO 0
+
 #if CONFIG_LIBUKSCHED
 int uk_posix_process_create(struct uk_alloc *a,
 			    struct uk_thread *thread,
