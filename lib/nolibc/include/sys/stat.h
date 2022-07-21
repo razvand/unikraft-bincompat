@@ -37,6 +37,8 @@ struct stat {
 	struct timespec st_atim;
 	struct timespec st_mtim;
 	struct timespec st_ctim;
+
+	long unused[3];
 };
 
 #define st_atime st_atim.tv_sec
