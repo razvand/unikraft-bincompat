@@ -20,6 +20,7 @@ extern "C" {
 
 #include <nolibc-internal/shareddefs.h>
 
+#if 0
 struct stat {
 	dev_t st_dev;
 	ino_t st_ino;
@@ -38,6 +39,42 @@ struct stat {
 	struct timespec st_mtim;
 	struct timespec st_ctim;
 };
+#endif
+
+typedef unsigned long __kernel_ulong_t;
+typedef long __kernel_long_t;
+
+struct stat {
+	__kernel_ulong_t	st_dev;
+	__kernel_ulong_t	st_ino;
+	__kernel_ulong_t	st_nlink;
+
+	unsigned int		st_mode;
+	unsigned int		st_uid;
+	unsigned int		st_gid;
+	unsigned int		__pad0;
+	__kernel_ulong_t	st_rdev;
+	__kernel_long_t		st_size;
+	__kernel_long_t		st_blksize;
+	__kernel_long_t		st_blocks;	/* Number 512-byte blocks allocated. */
+
+	struct timespec st_atim;
+	struct timespec st_mtim;
+	struct timespec st_ctim;
+
+	__kernel_long_t		__unused_[3];
+};
+
+#if 0
+	__kernel_ulong_t	st_atime;
+	__kernel_ulong_t	st_atime_nsec;
+	__kernel_ulong_t	st_mtime;
+	__kernel_ulong_t	st_mtime_nsec;
+	__kernel_ulong_t	st_ctime;
+	__kernel_ulong_t	st_ctime_nsec;
+	__kernel_long_t		__unused_[3];
+};
+#endif
 
 #define st_atime st_atim.tv_sec
 #define st_mtime st_mtim.tv_sec
