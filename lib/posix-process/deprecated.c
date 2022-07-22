@@ -45,10 +45,6 @@
 #include <vfscore/file.h>
 #endif
 
-#define UNIKRAFT_SID      0
-#define UNIKRAFT_PGID     0
-#define UNIKRAFT_PROCESS_PRIO 0
-
 static void exec_warn_argv_variadic(const char *arg, va_list args)
 {
 	int i = 1;
