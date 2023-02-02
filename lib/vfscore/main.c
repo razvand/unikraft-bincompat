@@ -1099,7 +1099,7 @@ UK_SYSCALL_R_DEFINE(int, getdents, int, fd, struct dirent*, dirp,
 	struct dirent entry, *result;
 	int error;
 
-	do {
+	while ((i + 1) * sizeof(struct dirent) < count) {
 		error = readdir_r(&dir, &entry, &result);
 		if (error) {
 			trace_vfs_getdents_err(error);
@@ -1114,8 +1114,7 @@ UK_SYSCALL_R_DEFINE(int, getdents, int, fd, struct dirent*, dirp,
 
 		} else
 			break;
-
-	} while (i < count);
+	}
 
 	return (i * sizeof(struct dirent));
 }
